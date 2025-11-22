@@ -5,7 +5,7 @@ class Academic_Subject(models.Model):
     SubjectCode = models.CharField(max_length=50, primary_key=True, validators=[MaxLengthValidator(50)])
     SubjectName = models.CharField(max_length=255)
     Semester = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-
+    Branch = models.CharField(max_length=20)
     class Meta:
         db_table = "Academic_Subject"
         managed = False

@@ -14,8 +14,10 @@ class Users_Student(models.Model):
     Email = models.CharField(max_length=255, validators=[EmailValidator()])
     Branch = models.CharField(max_length=255)
     Year = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    Semester = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     Section = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     IsActive = models.BooleanField(default=True)
+    DateOfBirth = models.DateField(null=True, blank=True, verbose_name="Date of Birth")
 
     class Meta:
         db_table = "Users_Student"

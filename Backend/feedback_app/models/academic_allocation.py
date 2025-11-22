@@ -15,6 +15,7 @@ class Academic_Allocation(models.Model):
     )
     TargetBranch = models.CharField(max_length=50)
     Target_Year = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    Target_Semester = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     Target_Section = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
