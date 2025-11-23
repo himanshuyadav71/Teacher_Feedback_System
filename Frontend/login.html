@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Teacher Feedback System</title>
+<!-- Client-side error capture (records errors to localStorage.tfs_client_errors) -->
+<script>
+(function(){
+    function recordError(obj){
+        try{
+            const key = 'tfs_client_errors';
+            const prev = JSON.parse(localStorage.getItem(key) || '[]');
+            prev.push(Object.assign({time: new Date().toISOString()}, obj));
+            localStorage.setItem(key, JSON.stringify(prev));
+            console.error('TFS captured error:', obj);
+        }catch(e){}
+    }
+    window.addEventListener('error', function(e){
+        recordError({type:'error', message: e.message, filename: e.filename, lineno: e.lineno, colno: e.colno, stack: (e.error && e.error.stack) || null});
+    });
+    window.addEventListener('unhandledrejection', function(e){
+        const reason = e.reason || {};
+        recordError({type:'unhandledrejection', message: reason.message || String(reason), stack: reason.stack || null});
+    });
+    window.getCapturedClientErrors = function(){ return JSON.parse(localStorage.getItem('tfs_client_errors') || '[]'); };
+})();
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                primary: '#1e3a8a',
+                secondary: '#3b82f6',
+                accent: '#f59e0b',
+                neutral: '#6b7280',
+                success: '#10b981',
+                warning: '#f97316'
+            },
+            fontFamily: {
+                'sans': ['Inter', 'system-ui', 'sans-serif']
+            }
+        }
+    }
+}
+</script>
+<style>
+.login-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+.form-container { backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.95); }
+.tab-active { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; }
+.tab-inactive { background: rgba(255, 255, 255, 0.8); color: #6b7280; }
+.form-field { transition: all 0.3s ease; }
+.form-field:focus { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+.error-msg { color: #ef4444; font-size: 0.85rem; margin-top: 4px; }
+</style>
+</head>
+<body class="font-sans login-bg min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-md">
+
+<!-- Logo -->
+<div class="text-center mb-8">
+    <div class="flex items-center justify-center space-x-3 mb-4">
+        <img src="resources/IT dept.png" alt="IT Department Logo" class="w-12 h-12 rounded-lg object-cover">
+    </div>
+    <h1 class="text-2xl font-bold text-white mb-2">IT Department</h1>
+    <p class="text-blue-100">Secure access for students and administrators</p>
+</div>
+
+<!-- Login Form Container -->
+<div class="form-container rounded-2xl shadow-2xl overflow-hidden">
+    <!-- Tabs -->
+    <div class="flex">
+        <button id="student-tab" class="flex-1 py-4 px-6 font-semibold tab-active transition-all duration-300">
+            Student Login
+        </button>
+        <button id="admin-tab" class="flex-1 py-4 px-6 font-semibold tab-inactive transition-all duration-300">
+            Admin Login
+        </button>
+    </div>
+
+    <!-- Student Login Form -->
+    <div id="student-form" class="p-8">
+        <form id="student-login-form">
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">Student Email</label>
+                <input type="email" id="student-email" class="form-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your student gmail id" required>
+                <p id="student-error" class="error-msg hidden"></p>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">Password</label>
+                <input type="password" id="student-password" class="form-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your date of birth (YYYY-MM-DD)" required>
+                <p id="student-pass-error" class="error-msg hidden"></p>
+            </div>
+            <div class="flex items-center justify-between mb-6">
+                <label class="flex items-center">
+                    <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                    <span class="ml-2 text-sm text-gray-600">Remember me</span>
+                </label>
+                <a href="#" class="text-sm text-primary hover:text-blue-800">Forgot password?</a>
+            </div>
+            <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors transform hover:scale-105">
+                Sign In as Student
+            </button>
+        </form>
+    </div>
+
+    <!-- Admin Login Form -->
+    <div id="admin-form" class="p-8 hidden">
+        <form id="admin-login-form">
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">Admin Email</label>
+                <input type="email" id="admin-email" class="form-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your admin email" required>
+                <p id="admin-error" class="error-msg hidden"></p>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">Password</label>
+                <input type="password" id="admin-password" class="form-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your password" required>
+                <p id="admin-pass-error" class="error-msg hidden"></p>
+            </div>
+            <div class="flex items-center justify-between mb-6">
+                <label class="flex items-center">
+                    <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                    <span class="ml-2 text-sm text-gray-600">Remember me</span>
+                </label>
+                <a href="#" class="text-sm text-primary hover:text-blue-800">Forgot password?</a>
+            </div>
+            <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors transform hover:scale-105">
+                Sign In as Admin
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Demo Credentials -->
+<div class="mt-8 text-center text-white">
+    <p class="text-sm text-blue-100 mb-2">Demo Credentials:</p>
+    <div class="text-xs text-blue-200 space-y-1">
+        <p>Student: demo.student@gmail.com / 2005-04-15</p>
+        <p>Admin: admin@acropolis.in / admin123</p>
+    </div>
+</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    // ===== Tabs =====
+    const studentTab = document.getElementById("student-tab");
+    const adminTab = document.getElementById("admin-tab");
+    const studentFormDiv = document.getElementById("student-form");
+    const adminFormDiv = document.getElementById("admin-form");
+
+    studentTab.addEventListener("click", () => {
+        studentTab.classList.add("tab-active"); studentTab.classList.remove("tab-inactive");
+        adminTab.classList.add("tab-inactive"); adminTab.classList.remove("tab-active");
+        studentFormDiv.classList.remove("hidden"); adminFormDiv.classList.add("hidden");
+    });
+
+    adminTab.addEventListener("click", () => {
+        adminTab.classList.add("tab-active"); adminTab.classList.remove("tab-inactive");
+        studentTab.classList.add("tab-inactive"); studentTab.classList.remove("tab-active");
+        adminFormDiv.classList.remove("hidden"); studentFormDiv.classList.add("hidden");
+    });
+
+    // ===== Student Login =====
+    const studentForm = document.getElementById("student-login-form");
+    const studentEmail = document.getElementById("student-email");
+    const studentPassword = document.getElementById("student-password");
+    const studentError = document.getElementById("student-error");
+    const studentPassError = document.getElementById("student-pass-error");
+
+    // Helper: validate YYYY-MM-DD and reasonable year
+    function isValidDOB(dobStr){
+        const isoPattern = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+        if(!isoPattern.test(dobStr)) return false;
+        const parts = dobStr.split('-').map(p=>parseInt(p,10));
+        const [y, m, d] = parts;
+        const date = new Date(dobStr);
+        if(Number.isNaN(date.getTime())) return false;
+        if(date.getUTCFullYear() !== y || date.getUTCMonth()+1 !== m || date.getUTCDate() !== d) return false;
+        const now = new Date();
+        const year = y;
+        if(year < 1900 || year > now.getFullYear()) return false;
+        // optional: check age range (10-100)
+        const age = now.getFullYear() - year - ((now.getMonth() < (m-1) || (now.getMonth() === (m-1) && now.getDate() < d)) ? 1 : 0);
+        if(age < 10 || age > 100) return false;
+        return true;
+    }
+
+    studentForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        // hide previous errors
+        studentError.classList.add("hidden");
+        studentPassError.classList.add("hidden");
+
+        const emailVal = studentEmail.value.trim();
+        const passVal = studentPassword.value.trim();
+
+        // Basic email validity (let browser do type=email but double-check)
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!emailPattern.test(emailVal)){
+            studentError.textContent = "Please enter a valid email address.";
+            studentError.classList.remove("hidden");
+            return;
+        }
+
+        if(!isValidDOB(passVal)){
+            studentPassError.textContent = "Please enter date of birth in YYYY-MM-DD format (age 10-100).";
+            studentPassError.classList.remove("hidden");
+            return;
+        }
+
+        // For demo: accept any valid email + DOB and proceed to feedback
+        const studentData = {
+            email: emailVal,
+            dob: passVal,
+            username: emailVal.split('@')[0]
+        };
+        // store both studentInfo (page-level) and currentUser (used by main.js)
+        localStorage.setItem("studentInfo", JSON.stringify(studentData));
+        localStorage.setItem("currentUser", JSON.stringify({ id: emailVal, role: 'student', username: studentData.username }));
+        window.location.href = "feedback.html";
+    });
+
+    // ===== Admin Login =====
+    const adminForm = document.getElementById("admin-login-form");
+    const adminEmail = document.getElementById("admin-email");
+    const adminPassword = document.getElementById("admin-password");
+    const adminError = document.getElementById("admin-error");
+    const adminPassError = document.getElementById("admin-pass-error");
+
+    adminForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        adminError.classList.add("hidden");
+        adminPassError.classList.add("hidden");
+
+        const emailVal = adminEmail.value.trim();
+        const passVal = adminPassword.value.trim();
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@acropolis\.in$/;
+
+        if(!emailPattern.test(emailVal)){
+            adminError.textContent = "Invalid Admin Email! Must end with @acropolis.in";
+            adminError.classList.remove("hidden");
+            return;
+        }
+
+        if(passVal === ""){
+            adminPassError.textContent = "Please enter password!";
+            adminPassError.classList.remove("hidden");
+            return;
+        }
+
+        if(emailVal === "admin@acropolis.in" && passVal === "admin123"){
+            // set flags used by both inline guards and main.js
+            localStorage.setItem("adminLoggedIn", "true");
+            localStorage.setItem("currentUser", JSON.stringify({ id: emailVal, role: 'admin', username: 'Admin' }));
+            window.location.href = "dashboard.html";
+        } else {
+            adminPassError.textContent = "Invalid credentials!";
+            adminPassError.classList.remove("hidden");
+        }
+    });
+});
+</script>
+</body>
+</html>
