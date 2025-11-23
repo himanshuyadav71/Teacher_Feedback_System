@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback - Teacher Feedback System</title>
+        <!-- Client-side error capture (records errors to localStorage.tfs_client_errors) -->
+        <script>
+        (function(){
+            function recordError(obj){
+                try{
+                    const key = 'tfs_client_errors';
+                    const prev = JSON.parse(localStorage.getItem(key) || '[]');
+                    prev.push(Object.assign({time: new Date().toISOString()}, obj));
+                    localStorage.setItem(key, JSON.stringify(prev));
+                    console.error('TFS captured error:', obj);
+                }catch(e){}
+            }
+            window.addEventListener('error', function(e){
+                recordError({type:'error', message: e.message, filename: e.filename, lineno: e.lineno, colno: e.colno, stack: (e.error && e.error.stack) || null});
+            });
+            window.addEventListener('unhandledrejection', function(e){
+                const reason = e.reason || {};
+                recordError({type:'unhandledrejection', message: reason.message || String(reason), stack: reason.stack || null});
+            });
+            window.getCapturedClientErrors = function(){ return JSON.parse(localStorage.getItem('tfs_client_errors') || '[]'); };
+        })();
+        </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e3a8a',
+                        secondary: '#3b82f6',
+                        accent: '#f59e0b',
+                        neutral: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f97316'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .rating-container {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        .rating-star {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .rating-star:hover {
+            transform: scale(1.1);
+        }
+        .rating-star.selected {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            border-color: #f59e0b;
+            color: white;
+        }
+        .progress-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+        .question-card {
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateX(50px);
+        }
+        .question-card.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .question-card.completed {
+            opacity: 0.7;
+            transform: translateX(-50px);
+        }
+        .anonymous-indicator {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="font-sans bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    
+    
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-3">
+                <img src="resources/IT dept.png" alt="IT Department Logo" class="w-10 h-10 rounded-lg object-cover">
+                <span class="text-xl font-semibold text-gray-900">IT Department</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 bg-green-50 px-3 py-1 rounded-full">
+                    <div class="w-2 h-2 bg-success rounded-full anonymous-indicator"></div>
+                    <span class="text-sm font-medium text-green-800">Anonymous Mode</span>
+                </div>
+                <button id="logout-btn" class="text-gray-600 hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Submit Teacher Feedback</h1>
+            <p class="text-lg text-gray-600 mb-6">
+                Your feedback is valuable and completely anonymous. Please provide honest ratings for the following questions.
+            </p>
+            
+            <!-- Progress Bar -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-600">Progress</span>
+                    <span id="progress-text" class="text-sm font-medium text-gray-600">0 of 10 completed</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Selection -->
+        <div id="teacher-selection" class="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Select Teacher</h2>
+            <div class="mb-4">
+                <label for="teacher-select" class="block text-sm font-medium text-gray-700 mb-2">Choose from list</label>
+                <select id="teacher-select" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="">-- Select teacher --</option>
+                </select>
+            </div>
+            <div class="relative">
+                <input type="text" id="teacher-search" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Search for teacher by name or subject...">
+                <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div id="teacher-list" class="mt-4 space-y-2 max-h-60 overflow-y-auto">
+                <!-- Teachers will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Feedback Form -->
+        <div id="feedback-form" class="hidden">
+            <!-- Question Template -->
+            <div id="question-template" class="question-card bg-white rounded-xl shadow-lg p-8 mb-6">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <div id="selected-teacher" class="text-sm text-gray-700 mb-2 hidden">
+                            <span class="font-medium" id="selected-teacher-name"></span>
+                        </div>
+                        <h3 id="question-title" class="text-xl font-semibold text-gray-900 mb-2">Question Title</h3>
+                        <p id="question-description" class="text-gray-600">Question description goes here...</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <span id="question-number">1</span>
+                        <span>/</span>
+                        <span>10</span>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="text-center mb-4">
+                        <span class="text-sm font-medium text-gray-600">Rate from 1 (Poor) to 5 (Excellent)</span>
+                    </div>
+                    <div class="rating-container" data-question="1">
+                        <div class="rating-star" data-rating="1">1</div>
+                        <div class="rating-star" data-rating="2">2</div>
+                        <div class="rating-star" data-rating="3">3</div>
+                        <div class="rating-star" data-rating="4">4</div>
+                        <div class="rating-star" data-rating="5">5</div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-2">
+                        <span>Poor</span>
+                        <span>Average</span>
+                        <span>Excellent</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <button id="prev-btn" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Previous
+                    </button>
+                    <button id="next-btn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Next Question
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Section -->
+        <div id="submit-section" class="hidden text-center">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Feedback Complete!</h3>
+                <p class="text-gray-600 mb-6">
+                    Thank you for providing your feedback. Your responses have been recorded anonymously.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button id="submit-feedback" class="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                        Submit Feedback
+                    </button>
+                    <button id="start-over" class="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                        Start Over
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 text-center">
+            <div class="w-20 h-20 bg-success rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-semibold text-gray-900 mb-4">Feedback Submitted!</h3>
+            <p class="text-gray-600 mb-6">
+                Your anonymous feedback has been successfully submitted. Thank you for helping improve teaching quality!
+            </p>
+            <button id="close-modal" class="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <script src="main.js?v=2"></script>
+</body>
+</html>
