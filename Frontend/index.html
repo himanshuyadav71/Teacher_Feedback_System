@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Feedback System - Modern Educational Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e3a8a',
+                        secondary: '#3b82f6',
+                        accent: '#f59e0b',
+                        neutral: '#6b7280',
+                        success: '#10b981',
+                        warning: '#f97316'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        .particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .content-layer {
+            position: relative;
+            z-index: 2;
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f59e0b, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tech-icon {
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="font-sans bg-white">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3">
+    <img src="resources/IT dept.png" alt="IT Department Logo" class="w-10 h-10 rounded-lg object-cover">
+    <span class="text-xl font-semibold text-gray-900">IT Department</span>
+</div>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    
+                    <a href="#how-it-works" class="text-gray-600 hover:text-primary transition-colors">How It Works</a>
+                
+                    <a href="login.html" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition-colors">Login</a>
+                </div>
+                <button class="md:hidden p-2" id="mobile-menu-btn">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>     
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-bg min-h-screen flex items-center relative overflow-hidden pt-16">
+        <canvas id="particle-canvas" class="particle-canvas"></canvas>
+        <div class="content-layer w-full">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="text-white">
+                        <h1 class="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                            Departmental <span class="gradient-text">Faculty Feedback</span> System
+                        </h1>
+                        <div class="text-xl mb-8 text-blue-100">
+                            <span id="typed-text"></span>
+                        </div>
+                        <p class="text-lg mb-8 text-blue-100 leading-relaxed">
+                            This platform enables meaningful communication between students and faculty to support better learning outcomes.<br>
+Note: Since your feedback serves as a review, please provide it thoughtfully and within the stated guidelines.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="login.html" class="bg-accent text-white px-8 py-4 rounded-lg font-semibold hover:bg-amber-500 transition-all transform hover:scale-105 text-center">
+                                Submit Feedback
+                            </a>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <img src="resources/hero-feedback-system.png" alt="Teacher Feedback System Dashboard" class="rounded-2xl shadow-2xl w-full">
+                        <div class="absolute -top-4 -right-4 bg-white rounded-lg p-4 shadow-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-success rounded-full animate-pulse"></div>
+                                <span class="text-sm font-medium text-gray-700">Live Analytics</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Simple, intuitive process designed for both students and administrators
+                </p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white font-bold text-xl">1</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Login</h3>
+                    <p class="text-gray-600">Students and admins access their respective dashboards with secure authentication.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white font-bold text-xl">2</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Select Teacher</h3>
+                    <p class="text-gray-600">Students choose from a list of available teachers for feedback submission.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white font-bold text-xl">3</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Submit Feedback</h3>
+                    <p class="text-gray-600">Complete the anonymous 10-question rating form with guaranteed privacy.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white font-bold text-xl">4</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">View Analytics</h3>
+                    <p class="text-gray-600">Administrators access real-time analytics and comprehensive reports.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-3 mb-6">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+    <img src="resources/IT dept.png" alt="IT Department Logo" class="w-10 h-10 rounded-lg object-cover">
+                    </div>
+                    <span class="text-xl font-semibold">IT Department</span>
+                </div>
+                <p class="text-gray-400 mb-6">
+                    Empowering educational institutions with modern feedback and analytics solutions.
+                </p>
+                <div class="border-t border-gray-800 pt-6">
+                    <p class="text-gray-500 text-sm">
+                       © 2025 Acropolis Institute of Technology and Research. Teacher Feedback System — developed by the Department of Information and Technology using modern web technologies. </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>
