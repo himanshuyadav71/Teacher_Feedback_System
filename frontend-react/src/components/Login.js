@@ -1,24 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import API_BASE_URL from '../config';
-import './Login.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config";
+import "./Login.css";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [dob, setDob] = useState('');
+  const [email, setEmail] = useState("");
+  const [dob, setDob] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
 
     try {
       const res = await fetch(`${API_BASE_URL}/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email, dob })
+        body: JSON.stringify({ email, dob }),
       });
 
       const data = await res.json();
@@ -30,7 +32,10 @@ const Login = () => {
         localStorage.setItem("email", data.Email);
         alert("Login Successful");
         navigate("/dashboard");
+      } else if (data.errors) {
+        setErrors(data.errors);
       } else {
+        // Handle other error messages
         alert(data.error || "Invalid credentials");
       }
     } catch (error) {
@@ -60,6 +65,13 @@ const Login = () => {
               placeholder="Enter your college email"
               required
             />
+            {errors.email && (
+              <div className="error-message">
+                {errors.email.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="form-group">
@@ -71,10 +83,17 @@ const Login = () => {
               onChange={(e) => setDob(e.target.value)}
               required
             />
+            {errors.dob && (
+              <div className="error-message">
+                {errors.dob.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
           </div>
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
