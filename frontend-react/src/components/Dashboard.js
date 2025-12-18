@@ -28,10 +28,15 @@ const Dashboard = () => {
   const fetchTeachers = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/my-teachers/`, {
-        method: "GET",
-        credentials: "include"
+         method: "GET",
+        credentials: "include",
       });
 
+      if (res.status === 401) {
+      alert("Session expired — login again");
+      navigate("/login");
+      return;
+    }
       const data = await res.json();
 
       if (data.status === "ok") {

@@ -337,6 +337,7 @@ def submit_feedback(request):
             feedback.save()
 
             Feedback_SubmissionLog.objects.create(
+                ResponseID=feedback,
                 EnrollmentNo=student,
                 AllocationID=alloc
             )
@@ -352,6 +353,56 @@ def submit_feedback(request):
         "status": "ok",
         "message": "feedback submitted",
         "allocation_id": alloc.AllocationID
+    })
+
+
+@require_GET
+@login_required_api
+def my_feedbacks(request):
+    """
+    Return a list of feedbacks submitted by the logged-in student.
+    Includes teacher and subject details along with ratings.
+    """
+    enrollment = request.session.get("user_enrollment")
+    
+    # Filter logs for this student
+    logs = Feedback_SubmissionLog.objects.filter(EnrollmentNo=enrollment).select_related(
+        "ResponseID", 
+        "AllocationID__TeacherID", 
+        "AllocationID__SubjectCode"
+    ).order_by("-Timestamp")
+
+    results = []
+    for log in logs:
+        resp = log.ResponseID
+        alloc = log.AllocationID
+        teacher = alloc.TeacherID
+        subject = alloc.SubjectCode
+
+        results.append({
+            "log_id": log.LogID,
+            "timestamp": log.Timestamp,
+            "teacher_name": teacher.FullName,
+            "subject_name": subject.SubjectName,
+            "subject_code": subject.SubjectCode,
+            "ratings": {
+                "q1": resp.Q1_Rating,
+                "q2": resp.Q2_Rating,
+                "q3": resp.Q3_Rating,
+                "q4": resp.Q4_Rating,
+                "q5": resp.Q5_Rating,
+                "q6": resp.Q6_Rating,
+                "q7": resp.Q7_Rating,
+                "q8": resp.Q8_Rating,
+                "q9": resp.Q9_Rating,
+                "q10": resp.Q10_Rating,
+            },
+            "comments": resp.Comments
+        })
+
+    return JsonResponse({
+        "status": "ok",
+        "feedbacks": results
     })
 
 

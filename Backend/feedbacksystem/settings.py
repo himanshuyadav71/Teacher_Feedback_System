@@ -32,6 +32,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -56,25 +58,30 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 ]
-
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
+
 # Session cookie settings for cross-origin requests
-SESSION_COOKIE_SAMESITE = 'Lax'  # Changed from 'None' - browsers reject SameSite=None without Secure=true
-SESSION_COOKIE_SECURE = False  # Cannot be True on HTTP (localhost)
-SESSION_COOKIE_HTTPONLY = True  # Re-enabled for security
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False  # Set to True only if using HTTPS
+SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_DOMAIN = None
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 86400  # 1 day
 
 ROOT_URLCONF = 'feedbacksystem.urls'
 

@@ -29,13 +29,16 @@ const Login = () => {
         body: JSON.stringify({ email, dob: formattedDob }),
       });
 
+
       const data = await res.json();
 
       if (data.status === "ok") {
-        localStorage.setItem("session_key", data.session_key);
-        localStorage.setItem("enrollment", data.EnrollmentNo);
-        localStorage.setItem("fullName", data.FullName);
-        localStorage.setItem("email", data.Email);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("session_key", data.session_key);
+          localStorage.setItem("enrollment", data.EnrollmentNo);
+          localStorage.setItem("fullName", data.FullName);
+          localStorage.setItem("email", data.Email);
+        }
         // Removed alert for smoother experience
         navigate("/dashboard");
       } else if (data.errors) {
