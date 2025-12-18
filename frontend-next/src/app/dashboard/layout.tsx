@@ -61,7 +61,7 @@ export default function DashboardLayout({
             >
                 <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100">
                     <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Feedback Sys
+                        Feedback System
                     </span>
                     <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-gray-500">
                         <X size={20} />

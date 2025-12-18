@@ -2,13 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BookOpen, User, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { BookOpen, User, ArrowRight, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import API_BASE_URL from '@/config';
 import { Toast, ToastType } from '@/components/ui/Toast';
+import { cn } from '@/lib/utils';
 
 interface Teacher {
     allocation_id: number;
     teacher_name: string;
+    is_submitted: boolean;
 }
 
 interface Subject {
@@ -128,26 +130,53 @@ export default function DashboardPage() {
                             <div className="flex-1 p-2">
                                 <div className="divide-y divide-gray-50">
                                     {subject.teachers.map((teacher) => (
-                                        <div key={teacher.allocation_id} className="p-4 flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 text-blue-700 flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm">
-                                                    {teacher.teacher_name.charAt(0)}
+                                        <div key={teacher.allocation_id} className="p-4 flex flex-col gap-4 hover:bg-gray-50 transition-colors">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 text-blue-700 flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm">
+                                                        {teacher.teacher_name.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 leading-tight">{teacher.teacher_name}</p>
+                                                        <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mt-0.5">Academic Faculty</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-gray-900 leading-tight">{teacher.teacher_name}</p>
-                                                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-0.5">Academic Faculty</p>
+
+                                                <div className={cn(
+                                                    "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5",
+                                                    teacher.is_submitted
+                                                        ? "bg-green-50 text-green-600 border border-green-100"
+                                                        : "bg-red-50 text-red-600 border border-red-100"
+                                                )}>
+                                                    <div className={cn("w-1.5 h-1.5 rounded-full", teacher.is_submitted ? "bg-green-500" : "bg-red-500 animate-pulse")} />
+                                                    {teacher.is_submitted ? "Submitted" : "Pending"}
                                                 </div>
                                             </div>
 
                                             <button
-                                                onClick={() => handleGiveFeedback(subject.subject_code, teacher.allocation_id, teacher.teacher_name)}
-                                                className="group/btn relative px-4 py-2 text-sm font-bold text-blue-600 hover:text-white transition-colors overflow-hidden rounded-lg border border-blue-100 hover:border-blue-600"
+                                                onClick={() => !teacher.is_submitted && handleGiveFeedback(subject.subject_code, teacher.allocation_id, teacher.teacher_name)}
+                                                disabled={teacher.is_submitted}
+                                                className={cn(
+                                                    "w-full group/btn relative px-4 py-2.5 text-sm font-bold transition-all overflow-hidden rounded-xl border flex items-center justify-center gap-2",
+                                                    teacher.is_submitted
+                                                        ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
+                                                        : "bg-white text-blue-600 border-blue-100 hover:border-blue-600 hover:text-white"
+                                                )}
                                             >
-                                                <span className="relative z-10 flex items-center gap-1.5">
-                                                    Feedback
-                                                    <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-                                                </span>
-                                                <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-200" />
+                                                {!teacher.is_submitted ? (
+                                                    <>
+                                                        <span className="relative z-10 flex items-center gap-2">
+                                                            Give Feedback
+                                                            <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                                                        </span>
+                                                        <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <CheckCircle2 size={16} className="text-green-500" />
+                                                        <span>Response Recorded</span>
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     ))}

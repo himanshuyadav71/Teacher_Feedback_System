@@ -170,6 +170,12 @@ def my_teachers(request):
         ) \
     .order_by("SubjectCode__SubjectCode")
 
+    # Get all submitted allocations for this student to show status
+    submitted_allocations = set(
+        Feedback_SubmissionLog.objects.filter(EnrollmentNo=enrollment)
+        .values_list("AllocationID", flat=True)
+    )
+
     subjects_map = {}
 
     for alloc in qs:
@@ -194,7 +200,8 @@ def my_teachers(request):
             "allocation_id": alloc.AllocationID,
             "teacher_id": teacher.TeacherID,
             "teacher_name": teacher.FullName,
-            "designation": teacher.Designation
+            "designation": teacher.Designation,
+            "is_submitted": alloc.AllocationID in submitted_allocations
         })
 
     return JsonResponse({
