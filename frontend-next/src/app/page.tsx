@@ -8,6 +8,7 @@ import { User, Lock, Calendar, ShieldCheck, ArrowRight, Laptop, GraduationCap } 
 import API_BASE_URL from '@/config';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { Toast, ToastType } from '@/components/ui/Toast';
 import { cn } from '@/lib/utils';
 
@@ -35,10 +36,42 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Admin login
     if (role === 'admin') {
-      showToast("Admin login is currently under maintenance.", "info");
+      if (!email || !dob) {
+        showToast("Please fill in all fields.", "error");
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/dashboard-admin/login/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username: email, password: dob }),
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem("session_key", data.session_key);
+            localStorage.setItem("admin_username", data.username);
+            localStorage.setItem("is_admin", "true");
+          }
+          showToast("Admin Login Successful! Redirecting...", "success");
+          setTimeout(() => router.push('/admin'), 1500);
+        } else {
+          showToast(data.error || "Invalid credentials.", "error");
+        }
+      } catch (error) {
+        showToast("Server connection failed. Is backend running?", "error");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
+
+    // Student login
     if (!email || !dob) {
       showToast("Please fill in all fields.", "error");
       return;
@@ -134,7 +167,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8 lg:p-10 shadow-2xl relative overflow-hidden"
+          className="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8 lg:p-10 shadow-2xl relative"
         >
           {/* Subtle reflection effect */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -198,41 +231,40 @@ export default function LoginPage() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-slate-300 ml-1">Date of Birth</label>
-                      <Input
-                        type="date"
+                      <DatePicker
                         value={dob}
-                        onChange={(e) => setDob(e.target.value)}
+                        onChange={(date) => setDob(date)}
+                        placeholder="Select your date of birth"
                         icon={<Calendar size={18} />}
                         className="bg-white/5 border-white/10 ring-0 focus:border-blue-500/50"
-                        required
                       />
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-slate-300 ml-1">Admin ID</label>
+                      <label className="text-sm font-semibold text-slate-300 ml-1">Admin Username</label>
                       <Input
-                        placeholder="Enter Admin ID"
+                        type="text"
+                        placeholder="Enter Admin Username"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         icon={<ShieldCheck size={18} />}
-                        disabled
-                        className="opacity-50 cursor-not-allowed"
+                        className="bg-white/5 border-white/10 ring-0 focus:border-blue-500/50"
+                        required
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-slate-300 ml-1">Password</label>
                       <Input
                         type="password"
-                        placeholder="••••••••"
+                        placeholder="Enter Password"
+                        value={dob}
+                        onChange={(e) => setDob(e.target.value)}
                         icon={<Lock size={18} />}
-                        disabled
-                        className="opacity-50 cursor-not-allowed"
+                        className="bg-white/5 border-white/10 ring-0 focus:border-blue-500/50"
+                        required
                       />
-                    </div>
-                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-                      <p className="text-sm text-blue-300 text-center font-medium">
-                        Admin portal is currently under maintenance.
-                      </p>
                     </div>
                   </>
                 )}

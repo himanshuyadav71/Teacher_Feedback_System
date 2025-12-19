@@ -423,3 +423,268 @@ def check_db_connection_and_list_tables():
         print("connection failed")
 
 check_db_connection_and_list_tables()
+
+
+# ============================================
+# ADMIN ENDPOINTS
+# ============================================
+
+import os
+from django.apps import apps
+
+def admin_required(view_func):
+    """Decorator to check if user is admin"""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get("is_admin"):
+            return JsonResponse({"status": "error", "error": "admin access required"}, status=403)
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@csrf_exempt
+def admin_login(request):
+    """Admin login using credentials from .env file"""
+    # Manual POST check
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "error": "method not allowed"}, status=405)
+    
+    try:
+        payload = json.loads(request.body)
+    except:
+        return JsonResponse({"status": "error", "error": "invalid JSON"}, status=400)
+    
+    username = payload.get("username")
+    password = payload.get("password")
+    
+    # Get admin credentials from environment
+    admin_username = os.getenv("ADMIN_USERNAME", "admin")
+    admin_password = os.getenv("ADMIN_PASSWORD", "admin@123")
+    
+    if username == admin_username and password == admin_password:
+        request.session['is_admin'] = True
+        request.session['admin_username'] = username
+        request.session.set_expiry(24 * 3600)  # 1 day
+        request.session.save()
+        
+        return JsonResponse({
+            "status": "ok",
+            "message": "admin login successful",
+            "username": username,
+            "session_key": request.session.session_key
+        })
+    
+    return JsonResponse({"status": "error", "error": "invalid credentials"}, status=401)
+
+
+@require_GET
+@admin_required
+def admin_list_tables(request):
+    """List all database tables"""
+    try:
+        # Get all models from the app
+        models = apps.get_app_config('feedback_app').get_models()
+        
+        tables = []
+        for model in models:
+            table_name = model._meta.db_table
+            model_name = model.__name__
+            
+            # Get row count
+            try:
+                count = model.objects.count()
+            except:
+                count = 0
+            
+            tables.append({
+                "table_name": table_name,
+                "model_name": model_name,
+                "row_count": count
+            })
+        
+        return JsonResponse({
+            "status": "ok",
+            "tables": sorted(tables, key=lambda x: x['model_name'])
+        })
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "error": str(e)
+        }, status=500)
+
+
+@require_GET
+@admin_required
+def admin_get_table_data(request, table_name):
+    """Get data from a specific table with pagination"""
+    try:
+        # Find the model by table name
+        model = None
+        for m in apps.get_app_config('feedback_app').get_models():
+            if m._meta.db_table == table_name or m.__name__ == table_name:
+                model = m
+                break
+        
+        if not model:
+            return JsonResponse({
+                "status": "error",
+                "error": f"table '{table_name}' not found"
+            }, status=404)
+        
+        # Pagination
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 50))
+        
+        # Get total count
+        total = model.objects.count()
+        
+        # Get paginated data
+        start = (page - 1) * page_size
+        end = start + page_size
+        
+        queryset = model.objects.all()[start:end]
+        
+        # Get field names
+        fields = [f.name for f in model._meta.get_fields() if not f.many_to_many and not f.one_to_many]
+        
+        # Convert to list of dicts
+        data = []
+        for obj in queryset:
+            row = {}
+            for field in fields:
+                try:
+                    value = getattr(obj, field)
+                    # Convert to JSON-serializable format
+                    if hasattr(value, 'isoformat'):  # datetime/date
+                        value = value.isoformat()
+                    elif hasattr(value, 'pk'):  # Foreign key
+                        value = str(value)
+                    row[field] = value
+                except:
+                    row[field] = None
+            data.append(row)
+        
+        # Get primary key field
+        pk_field = model._meta.pk.name
+        
+        return JsonResponse({
+            "status": "ok",
+            "model_name": model.__name__,
+            "table_name": model._meta.db_table,
+            "pk_field": pk_field,
+            "fields": fields,
+            "data": data,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size
+        })
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "error": str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_POST
+@admin_required
+def admin_update_row(request, table_name, row_id):
+    """Update a row in a table"""
+    try:
+        # Find the model
+        model = None
+        for m in apps.get_app_config('feedback_app').get_models():
+            if m._meta.db_table == table_name or m.__name__ == table_name:
+                model = m
+                break
+        
+        if not model:
+            return JsonResponse({
+                "status": "error",
+                "error": f"table '{table_name}' not found"
+            }, status=404)
+        
+        # Parse request body
+        try:
+            payload = json.loads(request.body)
+        except:
+            return JsonResponse({"status": "error", "error": "invalid JSON"}, status=400)
+        
+        # Get the object
+        try:
+            obj = model.objects.get(pk=row_id)
+        except model.DoesNotExist:
+            return JsonResponse({
+                "status": "error",
+                "error": f"row with id {row_id} not found"
+            }, status=404)
+        
+        # Update fields
+        for field, value in payload.items():
+            if hasattr(obj, field):
+                # Handle foreign keys
+                field_obj = model._meta.get_field(field)
+                if field_obj.is_relation:
+                    # Get related model
+                    related_model = field_obj.related_model
+                    if value:
+                        try:
+                            related_obj = related_model.objects.get(pk=value)
+                            setattr(obj, field, related_obj)
+                        except:
+                            pass
+                else:
+                    setattr(obj, field, value)
+        
+        obj.save()
+        
+        return JsonResponse({
+            "status": "ok",
+            "message": "row updated successfully"
+        })
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "error": str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_POST
+@admin_required
+def admin_delete_row(request, table_name, row_id):
+    """Delete a row from a table"""
+    try:
+        # Find the model
+        model = None
+        for m in apps.get_app_config('feedback_app').get_models():
+            if m._meta.db_table == table_name or m.__name__ == table_name:
+                model = m
+                break
+        
+        if not model:
+            return JsonResponse({
+                "status": "error",
+                "error": f"table '{table_name}' not found"
+            }, status=404)
+        
+        # Get and delete the object
+        try:
+            obj = model.objects.get(pk=row_id)
+            obj.delete()
+            
+            return JsonResponse({
+                "status": "ok",
+                "message": "row deleted successfully"
+            })
+        except model.DoesNotExist:
+            return JsonResponse({
+                "status": "error",
+                "error": f"row with id {row_id} not found"
+            }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "error": str(e)
+        }, status=500)

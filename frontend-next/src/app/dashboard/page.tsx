@@ -76,15 +76,19 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                <Loader2 className="w-10 h-10 animate-spin mb-4 text-blue-600" />
-                <p>Loading your assigned teachers...</p>
+            <div className="h-[60vh] flex flex-col items-center justify-center">
+                <div className="relative">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/20 mb-4">
+                        <Loader2 className="w-8 h-8 animate-spin text-white" />
+                    </div>
+                </div>
+                <p className="text-gray-600 font-medium">Loading your assigned teachers...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <Toast
                 message={toast.msg}
                 type={toast.type}
@@ -92,16 +96,18 @@ export default function DashboardPage() {
                 onClose={() => setToast(prev => ({ ...prev, visible: false }))}
             />
 
-            <div className="flex flex-col gap-2">
-                <h2 className="text-2xl font-bold text-gray-800">My Teachers</h2>
-                <p className="text-gray-500">Select a teacher below to provide your feedback.</p>
+            <div className="flex flex-col gap-3">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">My Teachers</h2>
+                <p className="text-gray-600 font-medium">Select a teacher below to provide your valuable feedback.</p>
             </div>
 
             {teachers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-gray-100 shadow-sm text-center">
-                    <AlertCircle className="w-12 h-12 text-gray-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-700">No Teachers Found</h3>
-                    <p className="text-gray-500 max-w-sm mt-2">
+                <div className="flex flex-col items-center justify-center py-16 bg-gray-100 rounded-2xl border border-gray-200/50 shadow-sm text-center">
+                    <div className="h-16 w-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                        <AlertCircle className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">No Teachers Found</h3>
+                    <p className="text-gray-600 max-w-md">
                         It looks like no teachers are assigned to you yet. Please contact your administrator.
                     </p>
                 </div>
@@ -113,11 +119,11 @@ export default function DashboardPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 group flex flex-col"
+                            className="bg-gray-100 rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-200 transition-all duration-300 group flex flex-col"
                         >
-                            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-5 text-white">
+                            <div className="bg-gradient-to-br from-blue-300 to-indigo-500 p-5 text-white">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-white/20 backdrop-blur-md rounded-lg">
+                                    <div className="p-2 bg-gray-100/20 backdrop-blur-md rounded-lg">
                                         <BookOpen size={20} />
                                     </div>
                                     <div>
@@ -169,7 +175,7 @@ export default function DashboardPage() {
                                                             Give Feedback
                                                             <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                                                         </span>
-                                                        <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
+                                                        <div className="absolute inset-0 bg-blue-400 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                                                     </>
                                                 ) : (
                                                     <>
