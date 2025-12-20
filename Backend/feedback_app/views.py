@@ -516,7 +516,7 @@ def admin_list_tables(request):
 @require_GET
 @admin_required
 def admin_get_table_data(request, table_name):
-    """Get data from a specific table with pagination"""
+    """Get data from a specific table with optional pagination"""
     try:
         # Find the model by table name
         model = None
@@ -531,21 +531,103 @@ def admin_get_table_data(request, table_name):
                 "error": f"table '{table_name}' not found"
             }, status=404)
         
-        # Pagination
-        page = int(request.GET.get('page', 1))
-        page_size = int(request.GET.get('page_size', 50))
+        # Check for no-pagination flag
+        nopaginate = request.GET.get('nopaginate', 'false').lower() == 'true'
         
-        # Get total count
-        total = model.objects.count()
+        # Get query parameters for sorting and searching
+        sort_by = request.GET.get('sort_by')
+        order = request.GET.get('order', 'asc')
+        search_term = request.GET.get('search', '')
         
-        # Get paginated data
-        start = (page - 1) * page_size
-        end = start + page_size
+        # Initial queryset
+        queryset = model.objects.all()
         
-        queryset = model.objects.all()[start:end]
+        # Apply Search
+        if search_term:
+            from django.db.models import Q
+            search_query = Q()
+            # Search across all text-based fields
+            for field in model._meta.get_fields():
+                if field.is_relation:
+                     continue
+                # Simple check for text fields (adjust based on needs)
+                internal_type = field.get_internal_type()
+                if internal_type in ['CharField', 'TextField', 'IntegerField', 'EmailField', 'FloatField', 'DecimalField']:
+                     search_query |= Q(**{f"{field.name}__icontains": search_term})
+            
+            queryset = queryset.filter(search_query)
+
+        # Apply Sorting
+        if sort_by:
+            # Validate field exists
+            field_names = [f.name for f in model._meta.get_fields()]
+            if sort_by in field_names:
+                if order == 'desc':
+                    queryset = queryset.order_by(f'-{sort_by}')
+                else:
+                    queryset = queryset.order_by(sort_by)
+
+        # Get total count after filtering
+        total = queryset.count()
         
-        # Get field names
-        fields = [f.name for f in model._meta.get_fields() if not f.many_to_many and not f.one_to_many]
+        if nopaginate:
+            # Get all data
+            page = 1
+            page_size = total if total > 0 else 1
+            total_pages = 1
+        else:
+            # Standard Pagination
+            page = int(request.GET.get('page', 1))
+            page_size = int(request.GET.get('page_size', 50))
+            if page_size < 1: page_size = 10 
+            
+            start = (page - 1) * page_size
+            end = start + page_size
+            queryset = queryset[start:end]
+            total_pages = (total + page_size - 1) // page_size if page_size > 0 else 1
+            
+        # Get field names and metadata
+        fields = []
+        field_meta = {}
+        
+        for f in model._meta.get_fields():
+            if f.many_to_many or f.one_to_many:
+                continue
+            
+            fields.append(f.name)
+            
+            # Determine type
+            internal_type = f.get_internal_type()
+            
+            # Extract metadata
+            meta = {
+                'type': 'text',
+                'required': not f.blank and not f.null,
+                'choices': [],
+                'is_auto': False
+            }
+            
+            if internal_type == 'BooleanField':
+                meta['type'] = 'boolean'
+            elif internal_type in ['DateField', 'DateTimeField']:
+                meta['type'] = 'date'
+            elif internal_type in ['IntegerField', 'BigIntegerField', 'PositiveSmallIntegerField']:
+                meta['type'] = 'number'
+                # Check for AutoField
+                from django.db import models # Local import to avoid circular dependency issues if any, or ensuring it's available
+                if isinstance(f, (models.AutoField, models.BigAutoField, models.SmallAutoField)):
+                    meta['is_auto'] = True
+            elif internal_type in ['FloatField', 'DecimalField']:
+                meta['type'] = 'float'
+                
+            # Extract choices if available
+            if f.choices:
+                meta['type'] = 'select'  # Override type to select if choices exist
+                meta['choices'] = [{'value': c[0], 'label': str(c[1])} for c in f.choices]
+            
+            field_meta[f.name] = meta
+        
+        # Convert to list of dicts
         
         # Convert to list of dicts
         data = []
@@ -558,7 +640,8 @@ def admin_get_table_data(request, table_name):
                     if hasattr(value, 'isoformat'):  # datetime/date
                         value = value.isoformat()
                     elif hasattr(value, 'pk'):  # Foreign key
-                        value = str(value)
+                        # USER REQUEST: Show raw ID instead of str(obj)
+                        value = value.pk
                     row[field] = value
                 except:
                     row[field] = None
@@ -573,12 +656,85 @@ def admin_get_table_data(request, table_name):
             "table_name": model._meta.db_table,
             "pk_field": pk_field,
             "fields": fields,
+            "field_meta": field_meta,
             "data": data,
             "total": total,
             "page": page,
             "page_size": page_size,
-            "total_pages": (total + page_size - 1) // page_size
+            "total_pages": total_pages
         })
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "error": str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_POST
+@admin_required
+def admin_add_row(request, table_name):
+    """Add a new row to a table"""
+    # Restricted Tables
+    if table_name.lower() in ['feedback_response', 'feedback_submissionlog']:
+        return JsonResponse({"status": "error", "error": "This table is read-only"}, status=403)
+        
+    try:
+        # Find the model
+        model = None
+        for m in apps.get_app_config('feedback_app').get_models():
+            if m._meta.db_table == table_name or m.__name__ == table_name:
+                model = m
+                break
+        
+        if not model:
+            return JsonResponse({
+                "status": "error",
+                "error": f"table '{table_name}' not found"
+            }, status=404)
+        
+        # Parse request body
+        try:
+            payload = json.loads(request.body)
+        except:
+            return JsonResponse({"status": "error", "error": "invalid JSON"}, status=400)
+            
+        # Create new object instance
+        obj = model()
+        
+        # Set fields
+        for field_name, value in payload.items():
+            if not value:
+                continue
+
+            try:
+                field = model._meta.get_field(field_name)
+                
+                # Handle foreign keys
+                if field.is_relation and field.many_to_one:
+                    related_model = field.related_model
+                    try:
+                        related_obj = related_model.objects.get(pk=value)
+                        setattr(obj, field_name, related_obj)
+                    except related_model.DoesNotExist:
+                         return JsonResponse({"status": "error", "error": f"Invalid ID {value} for field {field_name}"}, status=400)
+                else:
+                    setattr(obj, field_name, value)
+            except Exception as e:
+                # Field might not exist or other error, log/ignore
+                pass
+        
+        try:
+            obj.full_clean()
+            obj.save()
+            return JsonResponse({
+                "status": "ok",
+                "message": "row added successfully",
+                "pk": obj.pk
+            })
+        except ValidationError as e:
+             return JsonResponse({"status": "error", "error": str(e.message_dict)}, status=400)
+             
     except Exception as e:
         return JsonResponse({
             "status": "error",
@@ -591,6 +747,10 @@ def admin_get_table_data(request, table_name):
 @admin_required
 def admin_update_row(request, table_name, row_id):
     """Update a row in a table"""
+    # Restricted Tables
+    if table_name.lower() in ['feedback_response', 'feedback_submissionlog']:
+        return JsonResponse({"status": "error", "error": "This table is read-only"}, status=403)
+        
     try:
         # Find the model
         model = None
@@ -655,6 +815,10 @@ def admin_update_row(request, table_name, row_id):
 @admin_required
 def admin_delete_row(request, table_name, row_id):
     """Delete a row from a table"""
+    # Restricted Tables
+    if table_name.lower() in ['feedback_response', 'feedback_submissionlog']:
+        return JsonResponse({"status": "error", "error": "This table is read-only"}, status=403)
+
     try:
         # Find the model
         model = None
