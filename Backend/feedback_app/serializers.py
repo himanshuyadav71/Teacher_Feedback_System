@@ -4,9 +4,6 @@ from django import forms
 from datetime import date
 
 
-
-
-
 class LoginSerializer(forms.Form):
     REQUIRED_MSG = "email and dob is required"
      

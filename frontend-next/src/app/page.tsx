@@ -136,7 +136,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h3 className="text-xl font-bold tracking-tight text-white">IT Department</h3>
-            <p className="text-sm text-slate-400 font-medium">Government Polytechnic, A.N.</p>
+            <p className="text-sm text-slate-400 font-medium">ACROPOLIS INSTITUTE OF TECHNOLOGY & RESEARCH</p>
           </div>
         </div>
 
@@ -221,11 +221,11 @@ export default function LoginPage() {
                       <label className="text-sm font-semibold text-slate-300 ml-1">College Email</label>
                       <Input
                         type="email"
-                        placeholder="yourname@college.edu"
+                        placeholder="yourname@acropolis.in"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         icon={<User size={18} />}
-                        className="bg-white/5 border-white/10 ring-0 focus:border-blue-500/50"
+                        className="focus:border-blue-500/50"
                         required
                       />
                     </div>
@@ -236,7 +236,7 @@ export default function LoginPage() {
                         onChange={(date) => setDob(date)}
                         placeholder="Select your date of birth"
                         icon={<Calendar size={18} />}
-                        className="bg-white/5 border-white/10 ring-0 focus:border-blue-500/50"
+                        className="focus:border-blue-500/50"
                       />
                     </div>
                   </>
@@ -250,7 +250,7 @@ export default function LoginPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         icon={<ShieldCheck size={18} />}
-                        className="bg-white/5 border-white/10 ring-0 focus:border-blue-500/50"
+                        className="focus:border-blue-500/50"
                         required
                       />
                     </div>
@@ -262,7 +262,7 @@ export default function LoginPage() {
                         value={dob}
                         onChange={(e) => setDob(e.target.value)}
                         icon={<Lock size={18} />}
-                        className="bg-white/5 border-white/10 ring-0 focus:border-blue-500/50"
+                        className="focus:border-blue-500/50"
                         required
                       />
                     </div>
