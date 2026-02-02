@@ -128,7 +128,7 @@ export default function LoginPage() {
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative lg:w-1/2 flex flex-col justify-center px-8 lg:px-24 py-12 z-10"
+        className="relative lg:w-1/2 flex flex-col justify-center px-8 lg:px-24 pb-28 pt-24 z-10"
       >
         <div className="mb-12 flex items-center gap-4">
           <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg p-2">
@@ -162,12 +162,12 @@ export default function LoginPage() {
       </motion.div>
 
       {/* Right Section - Login Card */}
-      <div className="lg:w-1/2 flex items-center justify-center p-6 lg:p-12 z-10">
+      <div className="lg:w-1/2 flex items-start justify-center p-12 lg:pb-28 pt-24  z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8 lg:p-10 shadow-2xl relative"
+          className="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-10 lg:p-10 shadow-2xl relative"
         >
           {/* Subtle reflection effect */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />

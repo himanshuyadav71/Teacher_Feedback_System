@@ -428,7 +428,7 @@ export default function AdminDashboard() {
                             </div>
 
                             {/* Table Data */}
-                            <div className="flex-1 overflow-auto w-full relative">
+                            <div className="flex-1 overflow-x-auto overflow-y-auto w-full relative">
                                 {loading && (
                                     <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
                                         <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
@@ -443,20 +443,20 @@ export default function AdminDashboard() {
                                                     <th
                                                         key={field}
                                                         onClick={() => handleSort(field)}
-                                                        className="px-6 py-4 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors select-none group first:rounded-tl-lg"
+                                                        className="px-3 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer hover:bg-indigo-700 transition-colors select-none group border-r border-indigo-700 first:rounded-tl-lg"
                                                     >
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-1">
                                                             {field.replace(/_/g, ' ')}
                                                             {sortBy === field ? (
-                                                                sortOrder === 'asc' ? <ArrowUp size={14} className="text-indigo-200" /> : <ArrowDown size={14} className="text-indigo-200" />
+                                                                sortOrder === 'asc' ? <ArrowUp size={12} className="text-indigo-200" /> : <ArrowDown size={12} className="text-indigo-200" />
                                                             ) : (
-                                                                <ArrowUpDown size={14} className="text-indigo-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                <ArrowUpDown size={12} className="text-indigo-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                                             )}
                                                         </div>
                                                     </th>
                                                 ))}
                                                 {!READ_ONLY_TABLES.some(t => t.toLowerCase() === selectedTable.toLowerCase()) && (
-                                                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider sticky right-0 bg-indigo-600 shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.2)] z-20 last:rounded-tr-lg">
+                                                    <th className="px-3 py-2 text-right text-xs font-bold uppercase tracking-wide sticky right-0 bg-indigo-600 shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.2)] z-20 last:rounded-tr-lg">
                                                         Actions
                                                     </th>
                                                 )}
@@ -464,7 +464,7 @@ export default function AdminDashboard() {
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
                                             {tableData.data.map((row, idx) => (
-                                                <tr key={idx} className="hover:bg-indigo-50/50 even:bg-slate-50/50 transition-colors group">
+                                                <tr key={idx} className="hover:bg-indigo-50/50 even:bg-slate-50/50 transition-colors">
                                                     {tableData.fields.map((field) => {
                                                         const meta = tableData.field_meta?.[field];
                                                         const value = row[field];
@@ -485,27 +485,27 @@ export default function AdminDashboard() {
                                                         }
 
                                                         return (
-                                                            <td key={field} className="px-6 py-4 text-sm text-slate-700 align-middle">
+                                                            <td key={field} className="px-3 py-2 text-sm text-slate-700 align-middle border-r border-slate-200">
                                                                 {content}
                                                             </td>
                                                         );
                                                     })}
-                                                    <td className="px-6 py-4 text-right sticky right-0 group-even:bg-slate-50/50 bg-white group-hover:bg-indigo-50/50 border-l border-transparent shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.05)] align-middle z-10">
+                                                    <td className="px-3 py-2 text-right sticky right-0 group-even:bg-slate-50/50 bg-white group-hover:bg-indigo-50/50 border-l border-slate-200 shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.05)] align-middle z-10">
                                                         {!READ_ONLY_TABLES.some(t => t.toLowerCase() === selectedTable.toLowerCase()) && (
-                                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                            <div className="flex justify-end gap-2">
                                                                 <button
                                                                     onClick={() => handleEdit(row)}
-                                                                    className="p-2 rounded-full text-indigo-600 hover:bg-white hover:shadow-sm transition-all shadow-none"
+                                                                    className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-all"
                                                                     title="Edit"
                                                                 >
-                                                                    <Edit size={16} />
+                                                                    <Edit size={14} />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => setDeleteConfirm(row)}
-                                                                    className="p-2 rounded-full text-red-600 hover:bg-white hover:shadow-sm transition-all shadow-none"
+                                                                    className="p-1.5 rounded-md text-red-600 hover:bg-red-100 transition-all"
                                                                     title="Delete"
                                                                 >
-                                                                    <Trash2 size={16} />
+                                                                    <Trash2 size={14} />
                                                                 </button>
                                                             </div>
                                                         )}

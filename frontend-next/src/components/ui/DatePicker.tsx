@@ -110,12 +110,12 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-slate-950 border-slate-800" align="start">
                 <div className="p-3 space-y-3">
-                    <div className="flex gap-2">
+                    <div className="flex gap-5">
                         <Select
                             value={month.getMonth().toString()}
                             onValueChange={handleMonthSelect}
                         >
-                            <SelectTrigger className="w-[140px] bg-slate-900 border-slate-800 text-white focus:ring-slate-700">
+                            <SelectTrigger className="w-[110px] bg-slate-900 border-slate-800 text-white focus:ring-slate-700">
                                 <SelectValue placeholder="Month" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800 text-white max-h-[200px]">
@@ -130,7 +130,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
                             value={month.getFullYear().toString()}
                             onValueChange={handleYearSelect}
                         >
-                            <SelectTrigger className="w-[100px] bg-slate-900 border-slate-800 text-white focus:ring-slate-700">
+                            <SelectTrigger className="w-[80px] bg-slate-900 border-slate-800 text-white focus:ring-slate-700">
                                 <SelectValue placeholder="Year" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800 text-white max-h-[200px]">
@@ -145,25 +145,26 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
                 </div>
 
                 <div className="p-3 pt-0 border-t border-slate-800/50">
+
                     <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={handleSelect}
                         month={month}
                         onMonthChange={setMonth}
-                        initialFocus
                         className="p-0 pointer-events-auto"
                         classNames={{
-                            day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white font-bold",
-                            day_today: "bg-slate-800 text-white font-semibold",
-                            day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-800 hover:text-white text-slate-300 inline-flex items-center justify-center rounded-lg",
+                            selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white font-bold rounded-lg",
+                            today: "bg-slate-700 text-white font-semibold rounded-lg",
+                            day_button: "h-8 w-8  font-normal aria-selected:opacity-100 hover:bg-blue-600 hover:text-white text-slate-300 rounded-lg",
                             caption_label: "hidden", // Hide default caption since we have custom selectors
                             nav: "hidden", // Hide default nav arrows since we have custom selectors
                         }}
                     />
+
                 </div>
 
-                <div className="flex items-center justify-between p-3 border-t border-slate-800 bg-slate-900/50">
+                <div className="flex items-center justify-between p-2 border-t border-slate-800 bg-slate-900/50">
                     <Button
                         variant="ghost"
                         size="sm"
@@ -184,7 +185,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
                             const today = new Date()
                             handleSelect(today)
                         }}
-                        className="bg-blue-600 hover:bg-blue-500 text-white"
+                        className="bg-blue-600 hover:bg-blue-500 text-white h-8 p-2"
                     >
                         Today
                     </Button>
