@@ -458,8 +458,8 @@ def admin_login(request):
     password = payload.get("password")
     
     # Get admin credentials from environment
-    admin_username = os.getenv("ADMIN_USERNAME", "admin")
-    admin_password = os.getenv("ADMIN_PASSWORD", "admin@123")
+    admin_username = os.getenv("ADMIN_USERNAME")
+    admin_password = os.getenv("ADMIN_PASSWORD")
     
     if username == admin_username and password == admin_password:
         request.session['is_admin'] = True
